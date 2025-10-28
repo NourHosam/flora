@@ -7,8 +7,9 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-    origin: 'http://localhost:3000',
-    credentials: true
+    origin: ['http://localhost:3000', 'https://flora-teal-one.vercel.app'],  // غير ده لو الفرونت اند على port تاني
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type']
 }));
 
 // Handle JSON and form data
