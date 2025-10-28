@@ -20,26 +20,16 @@ const CropRecommendation = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-
     const handleSoilChange = (param, value) => {
-        setSoilParams(prev => ({ 
-            ...prev,
-            [param]: value
-        }));
+        setSoilParams(prev => ({ ...prev, [param]: value }));
     };
 
     const handleClimateChange = (param, value) => {
-        setClimateParams(prev => ({ 
-            ...prev,
-            [param]: value
-        }));
+        setClimateParams(prev => ({ ...prev, [param]: value }));
     };
 
     const handleRainfallChange = (value) => {
-        setClimateParams(prev => ({ 
-            ...prev,
-            rainfall: value
-        }));
+        setClimateParams(prev => ({ ...prev, rainfall: value }));
     };
 
     const handleSubmit = async (e) => {
@@ -58,7 +48,7 @@ const CropRecommendation = () => {
                 Object.entries(allData).map(([key, value]) => [key, parseFloat(value) || 0])
             );
 
-            console.log('Sending data to backend:', numericData);
+            console.log('Sending data directly to Hugging Face API:', numericData);
             const response = await analyzeCropData(numericData);
             console.log('Full API response:', response);
 
@@ -260,11 +250,7 @@ const CropRecommendation = () => {
                     <div className="results-card">
                         <h2>Recommended Crops</h2>
 
-                        {error && (
-                            <div className="error-message">
-                                {error}
-                            </div>
-                        )}
+                        {error && <div className="error-message">{error}</div>}
 
                         {recommendations ? (
                             <div className="recommendations-list">
