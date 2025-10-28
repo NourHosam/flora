@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { analyzeDisease } from '../services/api'; // ✅ استدعاء الدالة من ملف api.js
+import { analyzeDiseaseFromFile } from '../services/api';// ✅ استدعاء الدالة من ملف api.js
 import './DiseaseDetection.css';
 
 const DiseaseDetection = () => {
@@ -21,35 +21,36 @@ const DiseaseDetection = () => {
     }
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    if (!selectedFile) {
-      setError('No file selected.');
-      return;
-    }
+const handleSubmit = async (event) => {
+  event.preventDefault();
+  if (!selectedFile) return setError('No file selected.');
 
-    setLoading(true);
-    setError(null);
-    setResult(null);
+  setLoading(true);
+  setError(null);
+  setResult(null);
 
-    try {
-      console.log('📤 Sending image to Disease Detection API...');
-      const response = await analyzeDisease(selectedFile); // ✅ استخدام دالة الـ API
-      console.log('✅ API Response:', response);
+  try {
+    // تقدر تشغّل debug: true أثناء التطوير
+    const response = await analyzeDiseaseFromFile(selectedFile, { debug: true, retries: 2, timeout: 30000 });
+    console.log('Final standardized response:', response);
 
+    if (!response.success) {
+      setError(response.message || 'Failed to detect disease');
+    } else {
       setResult({
-        status: response.status || 'Unknown',
-        confidence: response.overall_confidence || 0,
-        message: response.message || 'Detection completed successfully.',
+        status: response.status,
+        confidence: response.confidence,
+        raw: response.raw,
+        message: response.message
       });
-    } catch (err) {
-      console.error('❌ API Error:', err);
-      setError('Failed to get disease detection result. Please try again.');
-    } finally {
-      setLoading(false);
     }
-  };
-
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    setError(err.message || 'Unexpected error');
+  } finally {
+    setLoading(false);
+  }
+};
   const handleReset = () => {
     setSelectedFile(null);
     setResult(null);
