@@ -1,9 +1,7 @@
-const API_BASE_URL = 'http://localhost:5000';
-
 // Crop Recommendation API
 export const analyzeCropData = async (data) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/crop-recommendation`, {
+        const response = await fetch('https://mai-22-crop-recommendation-deployment.hf.space/recommend', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -15,8 +13,7 @@ export const analyzeCropData = async (data) => {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const responseData = await response.json();
-        return responseData;
+        return await response.json();
     } catch (error) {
         console.error('Crop recommendation error:', error);
         throw error;
@@ -26,7 +23,7 @@ export const analyzeCropData = async (data) => {
 // Plant Disease Detection API
 export const analyzeDisease = async (formData) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/disease`, {
+        const response = await fetch('https://mai-22-plant-disease-detection.hf.space/predict', {
             method: 'POST',
             body: formData,
         });
@@ -35,8 +32,7 @@ export const analyzeDisease = async (formData) => {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const responseData = await response.json();
-        return responseData;
+        return await response.json();
     } catch (error) {
         console.error('Disease detection error:', error);
         throw error;
