@@ -10,12 +10,10 @@ const CropRecommendation = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // ================== Load History ==================
   const loadHistory = useCallback(async () => {
     try {
       const data = await fetchCropHistory();
       
-      // معالجة البيانات لضمان أن history تكون مصفوفة
       if (Array.isArray(data)) {
         setHistory(data);
       } else if (data && Array.isArray(data.history)) {
@@ -23,7 +21,6 @@ const CropRecommendation = () => {
       } else if (data && Array.isArray(data.data)) {
         setHistory(data.data);
       } else if (data && typeof data === 'object') {
-        // إذا كانت البيانات كائن، نحوله لمصفوفة
         const historyArray = Object.values(data).filter(item => 
           item && typeof item === 'object'
         );
@@ -42,14 +39,12 @@ const CropRecommendation = () => {
     loadHistory();
   }, [loadHistory]);
 
-  // ================== Handle Input Changes ==================
   const handleParamChange = (category, param, value) => {
     const numericValue = parseFloat(value) || 0;
     if (category === 'soil') setSoilParams(prev => ({ ...prev, [param]: numericValue }));
     if (category === 'climate') setClimateParams(prev => ({ ...prev, [param]: numericValue }));
   };
 
-  // ================== Submit Form ==================
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -67,7 +62,6 @@ const CropRecommendation = () => {
       const response = await analyzeCropData(numericData);
       console.log('Full API response:', response);
 
-      // معالجة استجابة الـ API بشكل آمن
       let cropName = 'Unknown Crop';
       let confidence = 0.5;
 
@@ -102,15 +96,17 @@ const CropRecommendation = () => {
     }
   };
 
-  // ================== Helpers ==================
-  
-  // دالة تحديد لون كمية الأمطار
   const getRainfallColor = (value) => {
     const rainfall = parseFloat(value) || 0;
-    if (rainfall < 100) return '#ff6b6b';      // أحمر - قليل جداً
-    if (rainfall < 200) return '#ffa726';      // برتقالي - قليل
-    if (rainfall < 300) return '#4caf50';      // أخضر - متوسط
-    return '#2e7d32';                          // أخضر غامق - جيد
+    if (rainfall < 100) return '#ff6b6b';
+    if (rainfall < 200) return '#ffa726';
+    if (rainfall < 300) return '#4caf50';
+    return '#2e7d32';
+  };
+
+  const getRainfallGradient = (value) => {
+    const rainfall = parseFloat(value) || 0;
+    return `linear-gradient(to right, #ff6b6b 0%, #ffa726 20%, #4caf50 40%, #2e7d32 60%, #1b5e20 100%)`;
   };
 
   const getSeasonFromCrop = (crop) => {
@@ -123,7 +119,6 @@ const CropRecommendation = () => {
     return 'Various Seasons';
   };
 
-  // دالة مساعدة لعرض التاريخ بشكل آمن
   const formatDate = (dateString) => {
     try {
       if (!dateString) return 'Unknown date';
@@ -134,25 +129,21 @@ const CropRecommendation = () => {
     }
   };
 
-  // دالة مساعدة لاستخراج اسم المحصول من عنصر التاريخ
   const getHistoryCropName = (item) => {
     if (!item) return 'Unknown Crop';
     return item.name || item.crop || item.recommended_crop || item.prediction || 'Unknown Crop';
   };
 
-  // دالة مساعدة لاستخراج نسبة المطابقة من عنصر التاريخ
   const getHistoryScore = (item) => {
     if (!item) return 0;
     return item.score || item.confidence * 100 || 50;
   };
 
-  // دالة مساعدة لاستخراج مدى الملائمة من عنصر التاريخ
   const getHistorySuitability = (item) => {
     const score = getHistoryScore(item);
     return score > 80 ? "High" : score > 60 ? "Medium" : "Low";
   };
 
-  // ================== Render ==================
   return (
     <div className="crop-recommendation">
       <div className="recommendation-header">
@@ -161,7 +152,6 @@ const CropRecommendation = () => {
       </div>
 
       <div className="recommendation-content">
-        {/* Left Panel: Input */}
         <div className="parameters-section">
           <div className="parameters-card">
             <h2>Environmental Parameters</h2>
@@ -200,21 +190,27 @@ const CropRecommendation = () => {
                   ))}
                   <div className="climate-item">
                     <label>Rainfall (mm)</label>
-                    <input 
-                      type="range" 
-                      min="0" 
-                      max="500"
-                      value={climateParams.rainfall}
-                      onChange={e => handleParamChange('climate', 'rainfall', e.target.value)} 
-                    />
-                    {/* استخدم الدالة هنا لعرض اللون */}
-                    <span style={{ 
-                      color: getRainfallColor(climateParams.rainfall),
-                      fontWeight: 'bold',
-                      fontSize: '1.1rem'
-                    }}>
-                      {climateParams.rainfall} mm
-                    </span>
+                    <div className="slider-container">
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="500"
+                        value={climateParams.rainfall}
+                        onChange={e => handleParamChange('climate', 'rainfall', e.target.value)}
+                        className="rainfall-slider"
+                        style={{
+                          background: getRainfallGradient(climateParams.rainfall)
+                        }}
+                      />
+                      <span 
+                        className="rainfall-value"
+                        style={{ 
+                          color: getRainfallColor(climateParams.rainfall)
+                        }}
+                      >
+                        {climateParams.rainfall} mm
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -227,7 +223,6 @@ const CropRecommendation = () => {
           </div>
         </div>
 
-        {/* Right Panel: Results + History */}
         <div className="results-section">
           <div className="results-card">
             <h2>Recommended Crops</h2>
