@@ -3,8 +3,8 @@ import { analyzeCropData, fetchCropHistory } from '../services/api';
 import './CropRecommendation.css';
 
 const CropRecommendation = () => {
-  const [soilParams, setSoilParams] = useState({ nitrogen:null, phosphorus: null, potassium: null });
-  const [climateParams, setClimateParams] = useState({ temperature: null, humidity: null, rainfall: 120, ph: null});
+  const [soilParams, setSoilParams] = useState({ nitrogen: null, phosphorus: null, potassium: null });
+  const [climateParams, setClimateParams] = useState({ temperature: null, humidity: null, rainfall: 120, ph: null });
   const [recommendations, setRecommendations] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -42,7 +42,6 @@ const CropRecommendation = () => {
     loadHistory();
   }, [loadHistory]);
 
-<<<<<<< HEAD
   // ================== Handle Input Changes ==================
   const handleParamChange = (category, param, value) => {
     const numericValue = parseFloat(value) || 0;
@@ -64,20 +63,9 @@ const CropRecommendation = () => {
         Object.entries(allData).map(([k, v]) => [k, parseFloat(v) || 0])
       );
 
+      console.log('Sending data directly to Hugging Face API:', numericData);
       const response = await analyzeCropData(numericData);
-=======
-    const handleSoilChange = (param, value) => {
-        setSoilParams(prev => ({ ...prev, [param]: value }));
-    };
-
-    const handleClimateChange = (param, value) => {
-        setClimateParams(prev => ({ ...prev, [param]: value }));
-    };
-
-    const handleRainfallChange = (value) => {
-        setClimateParams(prev => ({ ...prev, rainfall: value }));
-    };
->>>>>>> 427b181a96bd9cbb94e03a20316f3a4eaf8df2dc
+      console.log('Full API response:', response);
 
       // معالجة استجابة الـ API بشكل آمن
       let cropName = 'Unknown Crop';
@@ -101,7 +89,6 @@ const CropRecommendation = () => {
         season: getSeasonFromCrop(cropName)
       }]);
 
-<<<<<<< HEAD
       await loadHistory();
     } catch (err) {
       console.error(err);
@@ -114,15 +101,10 @@ const CropRecommendation = () => {
       setLoading(false);
     }
   };
-=======
-            console.log('Sending data directly to Hugging Face API:', numericData);
-            const response = await analyzeCropData(numericData);
-            console.log('Full API response:', response);
->>>>>>> 427b181a96bd9cbb94e03a20316f3a4eaf8df2dc
 
   // ================== Helpers ==================
   
-  // دالة تحديد لون كمية الأمطار - أضفها هنا
+  // دالة تحديد لون كمية الأمطار
   const getRainfallColor = (value) => {
     const rainfall = parseFloat(value) || 0;
     if (rainfall < 100) return '#ff6b6b';      // أحمر - قليل جداً
@@ -192,9 +174,8 @@ const CropRecommendation = () => {
                       <label>{nutrient.charAt(0).toUpperCase() + nutrient.slice(1)}</label>
                       <input 
                         type="number" 
-                         
                         min="0"
-                        value={soilParams[nutrient]}
+                        value={soilParams[nutrient] || ''}
                         onChange={e => handleParamChange('soil', nutrient, e.target.value)}
                         required 
                       />
@@ -203,7 +184,6 @@ const CropRecommendation = () => {
                 </div>
               </div>
 
-<<<<<<< HEAD
               <div className="climate-conditions">
                 <h3>Climate Conditions</h3>
                 <div className="climate-grid">
@@ -212,52 +192,10 @@ const CropRecommendation = () => {
                       <label>{param.charAt(0).toUpperCase() + param.slice(1)}</label>
                       <input 
                         type="number" 
-                        
-                        value={climateParams[param]}
+                        value={climateParams[param] || ''}
                         onChange={e => handleParamChange('climate', param, e.target.value)}
                         required 
                       />
-=======
-                <div className="results-section">
-                    <div className="results-card">
-                        <h2>Recommended Crops</h2>
-
-                        {error && <div className="error-message">{error}</div>}
-
-                        {recommendations ? (
-                            <div className="recommendations-list">
-                                {recommendations.map((crop, index) => (
-                                    <div key={index} className="crop-card">
-                                        <div className="crop-header">
-                                            <h3>{crop.name}</h3>
-                                            <span className={`suitability-badge ${crop.suitability.toLowerCase()}`}>
-                                                {crop.suitability} Suitability
-                                            </span>
-                                        </div>
-                                        <div className="crop-score">
-                                            <div className="score-bar">
-                                                <div
-                                                    className="score-fill"
-                                                    style={{ width: `${crop.score}%` }}
-                                                />
-                                            </div>
-                                            <span className="score-value">{crop.score}% Match</span>
-                                        </div>
-                                        <p className="crop-description">{crop.description}</p>
-                                        <div className="crop-meta">
-                                            <span className="season-tag">{crop.season}</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="placeholder">
-                                <div className="placeholder-icon">💡</div>
-                                <p>Enter your parameters to receive crop recommendations</p>
-                                <small>Adjust the values and click "Get Crop Recommendations"</small>
-                            </div>
-                        )}
->>>>>>> 427b181a96bd9cbb94e03a20316f3a4eaf8df2dc
                     </div>
                   ))}
                   <div className="climate-item">
@@ -293,25 +231,41 @@ const CropRecommendation = () => {
         <div className="results-section">
           <div className="results-card">
             <h2>Recommended Crops</h2>
+
+            {error && <div className="error-message">{error}</div>}
+
             {recommendations ? (
               <div className="recommendations-list">
-                {recommendations.map((crop, i) => (
-                  <div key={i} className="crop-card">
-                    <h3>{crop.name}</h3>
-                    <span className={`suitability-badge ${crop.suitability.toLowerCase()}`}>
-                      {crop.suitability} Suitability
-                    </span>
-                    <div className="score-bar">
-                      <div className="score-fill" style={{ width: `${crop.score}%` }} />
+                {recommendations.map((crop, index) => (
+                  <div key={index} className="crop-card">
+                    <div className="crop-header">
+                      <h3>{crop.name}</h3>
+                      <span className={`suitability-badge ${crop.suitability.toLowerCase()}`}>
+                        {crop.suitability} Suitability
+                      </span>
                     </div>
-                    <span>{crop.score}% Match</span>
-                    <p>{crop.description}</p>
-                    <small>{crop.season}</small>
+                    <div className="crop-score">
+                      <div className="score-bar">
+                        <div
+                          className="score-fill"
+                          style={{ width: `${crop.score}%` }}
+                        />
+                      </div>
+                      <span className="score-value">{crop.score}% Match</span>
+                    </div>
+                    <p className="crop-description">{crop.description}</p>
+                    <div className="crop-meta">
+                      <span className="season-tag">{crop.season}</span>
+                    </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p>No recommendation yet. Submit parameters to get recommendations.</p>
+              <div className="placeholder">
+                <div className="placeholder-icon">💡</div>
+                <p>Enter your parameters to receive crop recommendations</p>
+                <small>Adjust the values and click "Get Crop Recommendations"</small>
+              </div>
             )}
 
             <h2>History</h2>
