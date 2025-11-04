@@ -1,115 +1,89 @@
-import express from 'express';
-import cors from 'cors';
-import axios from 'axios';
-import multer from 'multer';
-
+const express = require('express');
+const cors = require('cors');
+const axios = require('axios');
+const multer = require('multer');
+ 
 const app = express();
-
-// CORS configuration
+ 
 app.use(cors({
-    origin: 'http://localhost:3000',
-    credentials: true
+    origin: ['http://localhost:3000', 'https://flora-teal-one.vercel.app'],  // غير ده لو الفرونت اند على port تاني
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type']
 }));
-
-// Handle JSON and form data
+ 
 app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-
-// Configure multer for file uploads
-const storage = multer.memoryStorage();
-const upload = multer({
-    storage: storage,
-    limits: {
-        fileSize: 10 * 1024 * 1024 // 10MB limit
-    },
-    fileFilter: (req, file, cb) => {
-        // قبول جميع أنواع الصور المطلوبة
-        if (file.mimetype.startsWith('image/')) {
-            cb(null, true);
-        } else {
-            cb(new Error('Only image files are allowed!'), false);
-        }
-    }
-});
-
-// Test route
-app.get('/', (req, res) => {
-    res.send('Server is running ✅');
-});
-
-// ========== ⬇️ ضع الكود الجديد هنا ⬇️ ==========
+ 
+// إعداد multer لتخزين في الذاكرة
+const upload = multer({ storage: multer.memoryStorage() });
+ 
+// طريق لكشف المرض
 app.post('/api/disease', upload.single('image'), async (req, res) => {
     try {
         console.log('🟢 Received disease detection request');
-
-        // التحقق من رفع الصورة
         if (!req.file) {
-            return res.status(400).json({ error: 'No image provided' });
+            return res.status(400).json({
+                success: false,
+                error: 'لم يتم استقبال ملف الصورة'
+            });
         }
-
-        // تحديد نوع الصورة (MIME type)
-        const mimeMap = {
-            'image/jpeg': 'jpeg',
-            'image/jpg': 'jpeg',
-            'image/png': 'png',
-            'image/webp': 'webp',
-            'image/bmp': 'bmp',
-            'image/gif': 'gif',
-            'image/svg+xml': 'svg+xml'
-        };
-        const mimeType = mimeMap[req.file.mimetype] || 'jpeg';
-
-        // تحويل الصورة إلى base64
-        const imageData = req.file.buffer.toString('base64');
-        const imageBase64 = `data:image/${mimeType};base64,${imageData}`;
-
+ 
         console.log(`📸 Image received: ${req.file.originalname}`);
-        console.log(`Type: ${req.file.mimetype} (${mimeType}), Size: ${req.file.size} bytes`);
-        console.log('Sending request to Hugging Face Plant Disease API...');
-
-        // رابط الـ API
-        const baseURL = 'https://mai-22-plant-disease-detection.hf.space/run/predict';
-
-        // طلب POST متوافق مع Hugging Face API
-        const response = await axios.post(
-            baseURL,
-            { data: [imageBase64] },
-            {
-                headers: { 'Content-Type': 'application/json' },
-                timeout: 30000 // 30 ثانية كحد أقصى
-            }
-        );
-
-        console.log('✅ Disease API responded successfully');
-        console.log(response.data);
-
-        // إرجاع النتيجة بتنسيق موحد
-        return res.status(200).json({
-            success: true,
-            model: 'Plant Disease Detection (Hugging Face Space)',
-            source: baseURL,
-            timestamp: new Date().toISOString(),
-            prediction: response.data
+        console.log(`Type: ${req.file.mimetype}, Size: ${req.file.size} bytes`);
+ 
+        // إنشاء FormData عشان Flask يستقبله
+        const FormData = require('form-data');
+        const formData = new FormData();
+        formData.append('file', req.file.buffer, {
+            filename: req.file.originalname,
+            contentType: req.file.mimetype
         });
-
+ 
+        // الـ Endpoint الصحيح لـ Flask
+        const YOUR_SPACE_URL = 'https://mai-22-plant-disease-detection.hf.space/predict';
+ 
+        console.log('Sending request to Hugging Face Plant Disease API...');
+ 
+        const response = await axios.post(YOUR_SPACE_URL, formData, {
+            headers: {
+                ...formData.getHeaders()  // headers للـ FormData
+            },
+            timeout: 30000
+        });
+ 
+        console.log('✅ Disease detection successful!');
+        console.log('Response:', JSON.stringify(response.data, null, 2));
+ 
+        // استجابة Flask مباشرة
+        res.json({
+            success: true,
+            status: response.data.status,
+            confidence: response.data.overall_confidence,
+            message: 'تم إكمال كشف المرض',
+            response: response.data
+        });
+ 
     } catch (error) {
         console.error('❌ Disease detection failed:');
-
-        if (error.response) {
-            console.error('Response Error:', error.response.status, error.response.data);
-        } else {
-            console.error('Message:', error.message);
-        }
-
-        return res.status(500).json({
+        console.error('Response Error:', error.response?.status, error.response?.data || error.message);
+        res.status(500).json({
             success: false,
-            error: 'Disease detection failed',
-            message: error.message,
-            hint: 'Make sure the Hugging Face Space is running and supports /run/predict endpoint',
-            reference: 'https://huggingface.co/docs/api-inference/detailed_parameters#image-inputs'
+            error: 'فشل في كشف المرض',
+            details: error.response?.data || error.message,
+            space_url: 'https://mai-22-plant-disease-detection.hf.space'
         });
     }
 });
+ 
+// طريق لمعلومات المساحة (مش ضروري، بس لو عايزه احتفظ به)
+app.get('/api/space-info', (req, res) => {
+    res.json({
+        your_space: 'https://mai-22-plant-disease-detection.hf.space',
+        space_owner: 'Mai-22',
+        space_name: 'plant-disease-detection',
+        api_endpoint: 'https://mai-22-plant-disease-detection.hf.space/predict'
+    });
+});
+ 
 // ========== ⬆️ الكود ينتهي هنا ⬆️ ==========
 
 // Crop Recommendation Route (اتركها كما هي أو عدلها بنفس الطريقة)
