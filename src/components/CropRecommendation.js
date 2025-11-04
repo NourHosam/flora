@@ -42,6 +42,7 @@ const CropRecommendation = () => {
     loadHistory();
   }, [loadHistory]);
 
+<<<<<<< HEAD
   // ================== Handle Input Changes ==================
   const handleParamChange = (category, param, value) => {
     const numericValue = parseFloat(value) || 0;
@@ -64,6 +65,19 @@ const CropRecommendation = () => {
       );
 
       const response = await analyzeCropData(numericData);
+=======
+    const handleSoilChange = (param, value) => {
+        setSoilParams(prev => ({ ...prev, [param]: value }));
+    };
+
+    const handleClimateChange = (param, value) => {
+        setClimateParams(prev => ({ ...prev, [param]: value }));
+    };
+
+    const handleRainfallChange = (value) => {
+        setClimateParams(prev => ({ ...prev, rainfall: value }));
+    };
+>>>>>>> 427b181a96bd9cbb94e03a20316f3a4eaf8df2dc
 
       // معالجة استجابة الـ API بشكل آمن
       let cropName = 'Unknown Crop';
@@ -87,6 +101,7 @@ const CropRecommendation = () => {
         season: getSeasonFromCrop(cropName)
       }]);
 
+<<<<<<< HEAD
       await loadHistory();
     } catch (err) {
       console.error(err);
@@ -99,6 +114,11 @@ const CropRecommendation = () => {
       setLoading(false);
     }
   };
+=======
+            console.log('Sending data directly to Hugging Face API:', numericData);
+            const response = await analyzeCropData(numericData);
+            console.log('Full API response:', response);
+>>>>>>> 427b181a96bd9cbb94e03a20316f3a4eaf8df2dc
 
   // ================== Helpers ==================
   
@@ -183,6 +203,7 @@ const CropRecommendation = () => {
                 </div>
               </div>
 
+<<<<<<< HEAD
               <div className="climate-conditions">
                 <h3>Climate Conditions</h3>
                 <div className="climate-grid">
@@ -196,6 +217,47 @@ const CropRecommendation = () => {
                         onChange={e => handleParamChange('climate', param, e.target.value)}
                         required 
                       />
+=======
+                <div className="results-section">
+                    <div className="results-card">
+                        <h2>Recommended Crops</h2>
+
+                        {error && <div className="error-message">{error}</div>}
+
+                        {recommendations ? (
+                            <div className="recommendations-list">
+                                {recommendations.map((crop, index) => (
+                                    <div key={index} className="crop-card">
+                                        <div className="crop-header">
+                                            <h3>{crop.name}</h3>
+                                            <span className={`suitability-badge ${crop.suitability.toLowerCase()}`}>
+                                                {crop.suitability} Suitability
+                                            </span>
+                                        </div>
+                                        <div className="crop-score">
+                                            <div className="score-bar">
+                                                <div
+                                                    className="score-fill"
+                                                    style={{ width: `${crop.score}%` }}
+                                                />
+                                            </div>
+                                            <span className="score-value">{crop.score}% Match</span>
+                                        </div>
+                                        <p className="crop-description">{crop.description}</p>
+                                        <div className="crop-meta">
+                                            <span className="season-tag">{crop.season}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="placeholder">
+                                <div className="placeholder-icon">💡</div>
+                                <p>Enter your parameters to receive crop recommendations</p>
+                                <small>Adjust the values and click "Get Crop Recommendations"</small>
+                            </div>
+                        )}
+>>>>>>> 427b181a96bd9cbb94e03a20316f3a4eaf8df2dc
                     </div>
                   ))}
                   <div className="climate-item">
