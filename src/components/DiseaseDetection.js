@@ -244,9 +244,6 @@ const DiseaseDetection = () => {
             ) : (
               history.map((item, idx) => (
                 <div key={item.id || idx} className="history-item">
-                  <div className="history-status">
-                    {getHistoryStatus(item)}
-                  </div>
                   <div className="history-confidence">
                     <strong>Confidence:</strong> {(getHistoryConfidence(item) * 100).toFixed(2)}%
                   </div>
