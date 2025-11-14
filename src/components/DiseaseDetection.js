@@ -11,12 +11,9 @@ const DiseaseDetection = () => {
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
 
-  // تثبيت دالة loadHistory لتجنب تحذيرات useEffect
   const loadHistory = useCallback(async () => {
     try {
       const data = await fetchDiseaseHistory();
-      
-      // معالجة البيانات لضمان أن history تكون مصفوفة
       if (Array.isArray(data)) {
         setHistory(data);
       } else if (data && Array.isArray(data.history)) {
@@ -26,7 +23,6 @@ const DiseaseDetection = () => {
       } else if (data && Array.isArray(data.predictions)) {
         setHistory(data.predictions);
       } else if (data && typeof data === 'object') {
-        // إذا كانت البيانات كائن، نحوله لمصفوفة
         const historyArray = Object.values(data).filter(item => 
           item && typeof item === 'object' && (item.status || item.prediction || item.result)
         );
@@ -37,7 +33,7 @@ const DiseaseDetection = () => {
       }
     } catch (err) {
       console.error('Failed to fetch disease history:', err);
-      setHistory([]); // تأكد من أن history تبقى مصفوفة فارغة في حالة الخطأ
+      setHistory([]);
     }
   }, []);
 
@@ -45,7 +41,6 @@ const DiseaseDetection = () => {
     loadHistory();
   }, [loadHistory]);
 
-  // إدارة preview URL بشكل آمن لتجنب memory leak
   useEffect(() => {
     if (selectedFile) {
       const url = URL.createObjectURL(selectedFile);
@@ -110,9 +105,7 @@ const DiseaseDetection = () => {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
+  const handleDragOver = (e) => e.preventDefault();
 
   const handleDrop = (e) => {
     e.preventDefault();
@@ -126,7 +119,6 @@ const DiseaseDetection = () => {
     }
   };
 
-  // دالة مساعدة لعرض التاريخ بشكل آمن
   const formatDate = (dateString) => {
     try {
       if (!dateString) return 'Unknown date';
@@ -137,13 +129,11 @@ const DiseaseDetection = () => {
     }
   };
 
-  // دالة مساعدة لاستخراج حالة المرض من عنصر التاريخ
   const getHistoryStatus = (item) => {
     if (!item) return 'Unknown';
     return item.status || item.prediction || item.result || item.label || 'Unknown';
   };
 
-  // دالة مساعدة لاستخراج الثقة من عنصر التاريخ
   const getHistoryConfidence = (item) => {
     if (!item) return 0;
     return item.confidence || item.score || item.probability || 0;
@@ -201,9 +191,7 @@ const DiseaseDetection = () => {
                     <span className="loading-spinner"></span>
                     Analyzing...
                   </>
-                ) : (
-                  'Predict Disease'
-                )}
+                ) : 'Predict Disease'}
               </button>
               <button 
                 type="button" 
@@ -215,11 +203,7 @@ const DiseaseDetection = () => {
             </div>
           </form>
 
-          {error && (
-            <div className="error-message">
-              ⚠️ {error}
-            </div>
-          )}
+          {error && <div className="error-message">⚠️ {error}</div>}
         </div>
 
         {/* Right Panel: Result + History */}
@@ -261,7 +245,7 @@ const DiseaseDetection = () => {
               history.map((item, idx) => (
                 <div key={item.id || idx} className="history-item">
                   <div className="history-status">
-                    <strong>Diagnosis:</strong> {getHistoryStatus(item)}
+                    {getHistoryStatus(item)}
                   </div>
                   <div className="history-confidence">
                     <strong>Confidence:</strong> {(getHistoryConfidence(item) * 100).toFixed(2)}%
